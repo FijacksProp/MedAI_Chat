@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}MedAI Assistant - Your AI Health Companion{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Landing page specific styles */
+    .hero-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    /* Form styling */
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--color-gray-200);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: var(--color-white);
+        transition: all 0.3s ease;
+    }
+
+    .form-input:hover {
+        border-color: var(--color-gray-300);
+    }
+
+    .form-input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        outline: none;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: var(--color-gray-700);
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    /* Severity scale styling */
+    .severity-scale {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .severity-button {
+        flex: 1;
+        padding: 0.75rem;
+        border: 2px solid var(--color-gray-200);
+        border-radius: 10px;
+        background: var(--color-white);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .severity-button:hover {
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+    }
+
+    .severity-button.active {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: white;
+        border-color: var(--color-primary);
+        transform: scale(1.05);
+    }
+
+    /* Submit button styling */
+    .submit-button {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(14, 165, 233, 0.3);
+    }
+
+    .submit-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(14, 165, 233, 0.4);
+    }
+
+    .submit-button:active {
+        transform: translateY(0);
+    }
+
+    .submit-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Card styling */
+    .form-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        max-width: 700px;
+        width: 100%;
+        animation: slideInUp 0.6s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Select dropdown styling */
+    select.form-input {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 3rem;
+    }
+
+    /* Error message styling */
+    .error-message {
+        color: #EF4444;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+        animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Page transition */
+    .page-fade-out {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeOut {
+        to {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+    }
+
+    /* Mobile responsiveness for severity scale */
+    @media (max-width: 640px) {
+        .severity-scale {
+            flex-direction: column;
+        }
+        .severity-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="form-card p-8 md:p-12">
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-full mb-4">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                MedAI Assistant
+            </h1>
+            <p class="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                Get personalized health insights powered by advanced AI. Share your symptoms, and receive evidence-based guidance tailored to your needs.
+            </p>
+        </div>
+
+        <!-- Intake Form -->
+        <form id="intakeForm" class="space-y-6">
+            <!-- Age Range -->
+            <div>
+                <label for="ageRange" class="form-label">
+                    Age Range <span class="text-red-500">*</span>
+                </label>
+                <select id="ageRange" name="ageRange" class="form-input" required>
+                    <option value="">Select your age range</option>
+                    <option value="0-17">Under 18</option>
+                    <option value="18-29">18-29</option>
+                    <option value="30-39">30-39</option>
+                    <option value="40-49">40-49</option>
+                    <option value="50-59">50-59</option>
+                    <option value="60-69">60-69</option>
+                    <option value="70+">70 and above</option>
+                </select>
+                <div class="error-message" id="ageError">Please select your age range</div>
+            </div>
+
+            <!-- Sex -->
+            <div>
+                <label for="sex" class="form-label">
+                    Gender
+                </label>
+                <select id="sex" name="sex" class="form-input">
+                    <option value="">Prefer not to say</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <!-- Main Symptom -->
+            <div>
+                <label for="symptom" class="form-label">
+                    What brings you here today? <span class="text-red-500">*</span>
+                </label>
+                <textarea 
+                    id="symptom" 
+                    name="symptom" 
+                    rows="4" 
+                    class="form-input resize-none" 
+                    placeholder="Describe your main symptom or health concern..."
+                    required
+                ></textarea>
+                <div class="error-message" id="symptomError">Please describe your symptom</div>
+            </div>
+
+            <!-- Duration -->
+            <div>
+                <label for="duration" class="form-label">
+                    How long have you been experiencing this? <span class="text-red-500">*</span>
+                </label>
+                <select id="duration" name="duration" class="form-input" required>
+                    <option value="">Select duration</option>
+                    <option value="less-than-day">Less than a day</option>
+                    <option value="1-3-days">1-3 days</option>
+                    <option value="4-7-days">4-7 days</option>
+                    <option value="1-2-weeks">1-2 weeks</option>
+                    <option value="2-4-weeks">2-4 weeks</option>
+                    <option value="1-3-months">1-3 months</option>
+                    <option value="more-than-3-months">More than 3 months</option>
+                </select>
+                <div class="error-message" id="durationError">Please select the duration</div>
+            </div>
+
+            <!-- Severity Scale -->
+            <div>
+                <label class="form-label">
+                    How would you rate the severity? <span class="text-red-500">*</span>
+                </label>
+                <input type="hidden" id="severity" name="severity" required>
+                <div class="severity-scale" id="severityScale">
+                    <button type="button" class="severity-button" data-value="1">
+                        <div class="text-lg mb-1">😊</div>
+                        <div>Mild</div>
+                    </button>
+                    <button type="button" class="severity-button" data-value="2">
+                        <div class="text-lg mb-1">🙂</div>
+                        <div>Minor</div>
+                    </button>
+                    <button type="button" class="severity-button" data-value="3">
+                        <div class="text-lg mb-1">😐</div>
+                        <div>Moderate</div>
+                    </button>
+                    <button type="button" class="severity-button" data-value="4">
+                        <div class="text-lg mb-1">😟</div>
+                        <div>Severe</div>
+                    </button>
+                    <button type="button" class="severity-button" data-value="5">
+                        <div class="text-lg mb-1">😰</div>
+                        <div>Critical</div>
+                    </button>
+                </div>
+                <div class="error-message" id="severityError">Please select a severity level</div>
+            </div>
+
+            <!-- Additional Context -->
+            <div>
+                <label for="context" class="form-label">
+                    Additional Information (Optional)
+                </label>
+                <textarea 
+                    id="context" 
+                    name="context" 
+                    rows="3" 
+                    class="form-input resize-none" 
+                    placeholder="Any existing conditions, medications, lifestyle factors, or other relevant details..."
+                ></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-button" id="submitButton">
+                Start Consultation
+            </button>
+        </form>
+
+        <!-- Privacy Notice -->
+        <div class="mt-6 text-center text-sm text-gray-500">
+            <p>🔒 Your information is private and secure. This tool provides general guidance only.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Form handling and validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('intakeForm');
+        const submitButton = document.getElementById('submitButton');
+        
+        // Severity scale handling
+        const severityButtons = document.querySelectorAll('.severity-button');
+        const severityInput = document.getElementById('severity');
+        
+        severityButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Remove active class from all buttons
+                severityButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                // Set hidden input value
+                severityInput.value = this.dataset.value;
+                // Hide error message if visible
+                document.getElementById('severityError').classList.remove('show');
+            });
+        });
+
+        // Real-time validation for text inputs
+        const requiredInputs = form.querySelectorAll('[required]');
+        requiredInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            input.addEventListener('input', function() {
+                if (this.classList.contains('invalid')) {
+                    validateField(this);
+                }
+            });
+        });
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            let isValid = true;
+            const formData = {};
+
+            // Age range
+            const ageRange = document.getElementById('ageRange');
+            if (!validateField(ageRange)) {
+                isValid = false;
+            } else {
+                formData.ageRange = ageRange.value;
+            }
+
+            // Sex (optional)
+            formData.sex = document.getElementById('sex').value;
+
+            // Symptom
+            const symptom = document.getElementById('symptom');
+            if (!validateField(symptom)) {
+                isValid = false;
+            } else {
+                formData.symptom = symptom.value;
+            }
+
+            // Duration
+            const duration = document.getElementById('duration');
+            if (!validateField(duration)) {
+                isValid = false;
+            } else {
+                formData.duration = duration.value;
+            }
+
+            // Severity
+            if (!severityInput.value) {
+                document.getElementById('severityError').classList.add('show');
+                isValid = false;
+            } else {
+                formData.severity = severityInput.value;
+            }
+
+            // Context (optional)
+            formData.context = document.getElementById('context').value;
+
+            if (isValid) {
+                // Store form data in sessionStorage
+                sessionStorage.setItem('intakeData', JSON.stringify(formData));
+                
+                // Disable submit button
+                submitButton.disabled = true;
+                submitButton.textContent = 'Preparing your consultation...';
+                
+                // Add fade out animation to the page
+                document.querySelector('.form-card').classList.add('page-fade-out');
+                
+                // Redirect to chat page after animation
+                setTimeout(() => {
+                    window.location.href = '/chat/';  // Update with your Django URL
+                }, 500);
+            }
+        });
+
+        // Field validation function
+        function validateField(field) {
+            const fieldId = field.id;
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (field.hasAttribute('required') && !field.value.trim()) {
+                field.classList.add('invalid');
+                field.style.borderColor = '#EF4444';
+                if (errorElement) {
+                    errorElement.classList.add('show');
+                }
+                return false;
+            } else {
+                field.classList.remove('invalid');
+                field.style.borderColor = '';
+                if (errorElement) {
+                    errorElement.classList.remove('show');
+                }
+                return true;
+            }
+        }
+    });
+</script>
+{% endblock %}
